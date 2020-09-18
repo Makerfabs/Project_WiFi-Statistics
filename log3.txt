@@ -1,0 +1,10 @@
+WIFI COUNT:
+{'COUNT':'29','TIME':'22'}
+{'COUNT':'28','TIME':'42'}
+{'COUNT':'16','TIME':'62'}
+{'COUNT':'21','TIME':'82'}
+{'COUNT':'19','TIME':'102'}
+{'COUNT':'24','TIME':'122'}
+{'COUNT':'24','TIME':'142'}
+{'COUNT':'22','TIME':'162'}
+{'COUNT':'21','TIME':'182'}

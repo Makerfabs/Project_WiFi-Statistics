@@ -61,7 +61,15 @@ SD card reader modules such as MakePython Audio are available, but require pin c
 
 ![1](md_pic/card_fail.jpg)
 
+- If all goes well, the LCD screen displays "count/time".
+
+![show](md_pic/show.jpg)
+
 
 ## Analysis Data
 
 - Copy the SD card TXT file beginning with "log" into the project folder.
+- Use command line, run wifi_count.py.
+- A line diagram of the time and surrounding terminal relationships is displayed.
+
+![count](md_pic/count.jpg)

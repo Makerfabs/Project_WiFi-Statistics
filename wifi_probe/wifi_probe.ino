@@ -123,7 +123,7 @@ void loop()
   channel = (channel % WIFI_CHANNEL_MAX) + 1;
   if (channel == 1)
   {
-    String data = "COUNT:" + String(mac_count) + get_run_time();
+    String data = create_data_str(mac_count,get_run_time());
     Serial.println(data);
     appendFile(SD, filename, data);
 
@@ -208,9 +208,16 @@ void appendFile(fs::FS &fs, String path, String message)
   }
 }
 
-String get_run_time()
+int get_run_time()
 {
-  return " RUNTIME:" + String(millis() / 1000);
+  return millis() / 1000;
+}
+
+String create_data_str(int count,int run_time)
+{
+  String data = "";
+  data = "{'COUNT':'" + String(mac_count) + "','TIME':'"+ String(get_run_time()) + "'}";
+  return data;
 }
 
 void lcd_text(String text)
