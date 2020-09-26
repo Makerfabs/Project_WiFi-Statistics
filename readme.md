@@ -82,19 +82,19 @@ IoT funcgtion have now been added. Data can be transmitted to Internet of Things
 
 - Get a ThingSpeak™ account.
 
-![account](E:\code\Project_WiFi-Statistics\md_pic\get_account.jpg)
+![account](md_pic/get_account.jpg)
 
 - Create a channel for collecting data. 
 
-![create_channel](E:\code\Project_WiFi-Statistics\md_pic\create_channel.jpg)
+![create_channel](md_pic/create_channel.jpg)
 
 - Set channel, like name and some params.
 
-![Set_channel](E:\code\Project_WiFi-Statistics\md_pic\set_channel.jpg)
+![Set_channel](md_pic/set_channel.jpg)
 
 - And system will give you two api_keys. Upload need write key.
 
-![aap_key](E:\code\Project_WiFi-Statistics\md_pic\app_key.jpg)
+![aap_key](md_pic/app_key.jpg)
 
 - Change code, add your write api_key. Mine is "2ZOQP7ZGJ9OVGU6X".
 
@@ -127,4 +127,4 @@ int my_index = 0;
 - Restart ESP32, wait a moment.
 - If upload successfully, webpage will show newest data.
 
-![web_ui](E:\code\Project_WiFi-Statistics\md_pic\web-ui.jpg)
+![web_ui](md_pic/web-ui.jpg)
