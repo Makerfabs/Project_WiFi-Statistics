@@ -147,7 +147,8 @@ void loop()
     Serial.println(data);
     appendFile(SD, filename, data);
 
-    lcd_text(String(mac_count) + "/" + String(millis() / 1000));
+    //lcd_text(String(mac_count) + "/" + String(millis() / 1000));
+    lcd_data_show(mac_count);
 #ifdef THINGSPEAK
     thingspeak_upload(mac_count);
 #endif
@@ -251,6 +252,26 @@ void lcd_text(String text)
   display.setTextColor(SSD1306_WHITE); // Draw white text
   display.setCursor(0, 0);             // Start at top-left corner
   display.println(text);
+  display.display();
+  delay(500);
+}
+
+void lcd_data_show(int count)
+{
+  display.clearDisplay();
+
+  display.setTextSize(2);              // Normal 1:1 pixel scale
+  display.setTextColor(SSD1306_WHITE); // Draw white text
+  display.setCursor(0, 0);             // Start at top-left corner
+  display.print("Count:");
+  display.println(count);
+  display.setTextSize(1);
+  display.setCursor(0, 20);
+  display.print("Time(s):");
+  display.println(millis() / 1000);
+  display.setCursor(0, 40);
+  display.println("Filename:");
+  display.println(filename);
   display.display();
   delay(500);
 }
