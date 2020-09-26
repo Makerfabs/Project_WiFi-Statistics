@@ -20,6 +20,22 @@ Change from https://github.com/ESP-EOS/ESP32-WiFi-Sniffer
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+//#define THINGSPEAK
+
+#ifdef THINGSPEAK
+
+#define DEBUG true //true: debug on; false:debug off
+bool SIM800C_ON = false;
+int my_index = 0;
+
+#define MP_RX1 21
+#define MP_TX1 22
+
+#define A9G_POWER 27
+#define A9G_RST 33
+
+#endif
+
 String filename = "";
 Adafruit_SSD1306 display(MP_ESP32_SSD1306_WIDTH, MP_ESP32_SSD1306_HEIGHT, &Wire, MP_ESP32_SSD1306_RST);
 
@@ -75,6 +91,10 @@ void setup()
   display.clearDisplay();
   lcd_text("WIFI SNIFFER");
 
+#ifdef THINGSPEAK
+  thingspeak_init();
+#endif
+
   //SD(SPI)
   pinMode(MP_A9G_SD_CS, OUTPUT);
   digitalWrite(MP_A9G_SD_CS, HIGH);
@@ -123,11 +143,14 @@ void loop()
   channel = (channel % WIFI_CHANNEL_MAX) + 1;
   if (channel == 1)
   {
-    String data = create_data_str(mac_count,get_run_time());
+    String data = create_data_str(mac_count, get_run_time());
     Serial.println(data);
     appendFile(SD, filename, data);
 
     lcd_text(String(mac_count) + "/" + String(millis() / 1000));
+#ifdef THINGSPEAK
+    thingspeak_upload(mac_count);
+#endif
 
     mac_count = 0;
   }
@@ -213,10 +236,10 @@ int get_run_time()
   return millis() / 1000;
 }
 
-String create_data_str(int count,int run_time)
+String create_data_str(int count, int run_time)
 {
   String data = "";
-  data = "{'COUNT':'" + String(mac_count) + "','TIME':'"+ String(get_run_time()) + "'}";
+  data = "{'COUNT':'" + String(mac_count) + "','TIME':'" + String(get_run_time()) + "'}";
   return data;
 }
 
@@ -298,3 +321,117 @@ void wifi_sniffer_packet_handler(void *buff, wifi_promiscuous_pkt_type_t type)
                   hdr->addr3[0], hdr->addr3[1], hdr->addr3[2],
                   hdr->addr3[3], hdr->addr3[4], hdr->addr3[5]);
 }
+
+#ifdef THINGSPEAK
+
+void thingspeak_init()
+{
+  Serial1.begin(115200, SERIAL_8N1, MP_RX1, MP_TX1);
+  lcd_text("INIT A9G");
+
+  //init
+
+  pinMode(A9G_RST, OUTPUT);
+  digitalWrite(A9G_RST, HIGH);
+  delay(1000);
+  digitalWrite(A9G_RST, LOW);
+  delay(1000);
+  pinMode(A9G_POWER, OUTPUT);
+  digitalWrite(A9G_POWER, LOW);
+  delay(1000);
+  digitalWrite(A9G_POWER, HIGH);
+  while (!SIM800C_ON)
+  {
+    sendData("AT", 2000, DEBUG);
+  }
+
+  sendData("AT+CCID", 2000, DEBUG);
+  sendData("AT+CREG?", 2000, DEBUG);
+  lcd_text("A9G Open");
+}
+
+void thingspeak_upload(int count)
+{
+  sendData("AT+CGATT=1", 2000, DEBUG);
+  sendData("AT+CGDCONT=1,\"IP\",\"CMNET\"", 2000, DEBUG);
+  sendData("AT+CGACT=1,1", 2000, DEBUG);
+  //String command = "AT+HTTPGET=\"http://api.thingspeak.com/update?api_key=2ZOQP7ZGJ9OVGU6X&second=1&count=2&index=3&uuid=4&name=5&field1=6&field2=7\"";
+  String command = "AT+HTTPGET=\"http://api.thingspeak.com/update?api_key=2ZOQP7ZGJ9OVGU6X&field1=";
+  command += String(millis() / 1000);
+  command += "&field2=";
+  //command += String(random(50));count
+  command += String(count);
+  command += "&field3=";
+  command += String(my_index++);
+  command += "&field4=4&field5=5&field6=6&field7=7&field8=8\"";
+  sendData(command, 5000, DEBUG);
+}
+
+String sendData(String command, const int timeout, boolean debug)
+{
+  String response = "";
+  Serial1.println(command);
+
+  String commandpre = getcommand_pref(command);
+  //SerialUSB.println(commandpre);
+
+  long int time = millis();
+  while ((time + timeout) > millis())
+  {
+    if (commandpre == "AT")
+    {
+      if (Serial1.find("OK"))
+      {
+        SIM800C_ON = true;
+        Serial.println("A9G is ON");
+      }
+    }
+
+    while (Serial1.available())
+    {
+      String c = Serial1.readString();
+      response += c;
+    }
+  }
+
+  if (debug)
+  {
+    Serial.println(response);
+  }
+  return response;
+}
+
+String getcommand_pref(String command)
+{
+
+  String command_pref = "";
+  char *cstr = new char[command.length() + 1];
+  strcpy(cstr, command.c_str());
+  char *token = strtok(cstr, "=");
+  int i = 0;
+  while (token != NULL)
+  {
+    //SerialUSB.print(token);
+    //SerialUSB.println("  line" + (String)i);
+
+    switch (i)
+    {
+    case 0:
+      command_pref = token;
+      break;
+
+    default:
+      break;
+    }
+
+    token = strtok(NULL, ",");
+    i = i + 1;
+  }
+
+  if (command_pref == "")
+    command_pref = command;
+
+  return command_pref;
+}
+
+#endif
